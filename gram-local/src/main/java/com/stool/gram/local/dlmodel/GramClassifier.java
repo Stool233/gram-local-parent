@@ -12,6 +12,8 @@ import org.springframework.beans.BeanUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class GramClassifier{
 
@@ -19,16 +21,28 @@ public class GramClassifier{
 
     private GramModel gramModel;
 
+    private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+    private Lock readLock = rwl.readLock();
+    private Lock writeLock = rwl.writeLock();
+
     public GramClassifier(GramModel gramModel) {
         this.gramModel = gramModel;
         buildClassifier();
     }
 
+    /**
+     * 读写锁，防止重建一半即被访问
+     */
     public GramResult compute(Collection<Float> data) {
-        return compute(new ArrayList<>(data));
+        readLock.lock();
+        try {
+            return compute(new ArrayList<>(data));
+        } finally {
+            readLock.unlock();
+        }
     }
 
-    public GramResult compute(List<Float> data) {
+    private GramResult compute(List<Float> data) {
         float[][][] arraysData = convertToArrays(data);
         Result result = classifier.predict(arraysData, Float.class);
         return convertToGramResult(result);
@@ -59,36 +73,48 @@ public class GramClassifier{
     }
 
     /**
-     * 加锁，防止重建一半即被访问
+     * 读写锁，防止重建一半即被访问
      */
-    public synchronized void buildClassifier() {
+    public void buildClassifier() {
+        writeLock.lock();
+        try {
+            if (classifier != null) {
+                classifier.close();
+            }
 
-        if (classifier != null) {
-            classifier.close();
+            ModelConfiguration configuration = new ModelConfiguration()
+                    .setModelDir(gramModel.getModelDir())
+                    .setModelFileName(gramModel.getModelFileName())
+                    .setLabelFileName(gramModel.getLabelFileName())
+                    .setNumberLabel(gramModel.getNumberLabel())
+                    .setInputTensorName(gramModel.getInputTensorName())
+                    .setOutputTensorName(gramModel.getOutputTensorName())
+                    .setModelName(gramModel.getModelName());
+
+            this.classifier = ModelClassifier.getClassifier(configuration);
+        } finally {
+            writeLock.unlock();
         }
-
-        ModelConfiguration configuration = new ModelConfiguration()
-                .setModelDir(gramModel.getModelDir())
-                .setModelFileName(gramModel.getModelFileName())
-                .setLabelFileName(gramModel.getLabelFileName())
-                .setNumberLabel(gramModel.getNumberLabel())
-                .setInputTensorName(gramModel.getInputTensorName())
-                .setOutputTensorName(gramModel.getOutputTensorName())
-                .setModelName(gramModel.getModelName());
-
-        this.classifier = ModelClassifier.getClassifier(configuration);
 
     }
 
     public void close() {
-        classifier.close();
+        writeLock.lock();
+        try {
+            classifier.close();
+        } finally {
+            writeLock.unlock();
+        }
+
     }
 
     public GramModel getGramModel() {
-        return gramModel;
+        readLock.lock();
+        try {
+            return gramModel;
+        } finally {
+            readLock.unlock();
+        }
     }
 
-    public void setGramModel(GramModel gramModel) {
-        this.gramModel = gramModel;
-    }
 }
