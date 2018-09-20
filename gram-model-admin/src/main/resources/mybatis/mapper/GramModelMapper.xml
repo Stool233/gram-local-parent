@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.stool.gram.dao.GramModelMapper" >
+    <resultMap id="BaseResultMap" type="com.stool.gram.pojo.database.GramModel" >
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="modelName" property="model_name" jdbcType="VARCHAR" />
+        <result column="modelDir" property="model_dir" jdbcType="VARCHAR" />
+        <result column="modelFileName" property="model_file_name" jdbcType="VARCHAR" />
+        <result column="labelFileName" property="label_file_name" jdbcType="VARCHAR" />
+        <result column="inputTensorName" property="input_tensor_name" jdbcType="VARCHAR" />
+        <result column="outputTensorName" property="output_tensor_name" jdbcType="VARCHAR" />
+        <result column="numberLabel" property="number_label" jdbcType="INTEGER" />
+        <result column="times" property="times" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <insert id="insert" parameterType="com.stool.gram.pojo.database.GramModel">
+        insert into gram_model (id, model_name, model_dir, model_file_name, label_file_name, input_tensor_name, output_tensor_name, number_label, times)
+        values (#{id}, #{modelName}, #{modelDir}, #{modelFileName}, #{labelFileName}, #{inputTensorName}, #{outputTensorName}, #{numberLabel}, #{times})
+    </insert>
+
+    <select id="list" resultMap="BaseResultMap">
+        select * from gram_model
+    </select>
+
+    <update id="updateByName">
+        update gram_model
+        <set >
+            <if test="modelDir != null" >
+                model_dir = #{modelDir},
+            </if>
+            <if test="modelFileName != null" >
+                model_file_name = #{modelFileName},
+            </if>
+            <if test="labelFileName != null" >
+                label_file_name = #{labelFileName},
+            </if>
+            <if test="inputTensorName != null" >
+                input_tensor_name = #{inputTensorName},
+            </if>
+            <if test="outputTensorName != null" >
+                output_tensor_name = #{outputTensorName},
+            </if>
+            <if test="numberLabel != null" >
+                number_label = #{numberLabel},
+            </if>
+            <if test="times != null" >
+                times = #{times},
+            </if>
+
+        </set>
+        where model_name = #{modelName}
+    </update>
+
+    <select id="selectByModelName" resultMap="BaseResultMap">
+        select * from gram_model
+        where model_name = #{modelName}
+    </select>
+
+</mapper>

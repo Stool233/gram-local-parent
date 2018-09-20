@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>上传模型</title>
+</head>
+<body>
+    <form id="gramModelForm">
+        <label for="modelName">模型名称：</label>
+        <input id="modelName" name="modelName" type="text"><br>
+        <label for="inputTensorName">输入节点名称：</label>
+        <input id="inputTensorName" name="inputTensorName" type="text"><br>
+        <label for="outputTensorName">输出节点名称：</label>
+        <input id="outputTensorName" name="outputTensorName" type="text"><br>
+        <label for="numberLabel">分类类别个数：</label>
+        <input id="numberLabel" name="numberLabel" type="text"><br>
+
+        <label for="times">需要作为输入的时间点列表(时间点递增，并以","分隔)：</label>
+        <input id="times" name="times" type="text"><br>
+
+        <label for="modelFile">模型文件(.pb)：</label>
+        <input id="modelFile" name="modelFile" type="file"><br>
+
+        <label for="labelFile">类别文件(.txt)：</label>
+        <input id="labelFile" name="labelFile" type="file"><br>
+    </form>
+    <button id="insertButton" type="button" onclick="insert()">添加</button>
+    <button id="updateButton" type="button" onclick="update()">修改</button>
+</body>
+
+<script>
+    function insert() {
+        var modelName = document.getElementById("modelName").value;
+        var inputTensorName = document.getElementById("inputTensorName").value;
+        var outputTensorName = document.getElementById("outputTensorName").value;
+        var numberLabel = document.getElementById("numberLabel").value;
+        var times = document.getElementById("times").value;
+        times = times.split(",");
+
+        var model = {
+            modelName: modelName,
+            inputTensorName: inputTensorName,
+            outputTensorName: outputTensorName,
+            numberLabel: numberLabel,
+            times: times
+        };
+
+        var modelFile = document.forms["gramModelForm"].modelFile.files[0];
+        var labelFile = document.forms["gramModelForm"].labelFile.files[0];
+
+        var formData = new FormData();
+
+        formData.append("gramModel", new Blob([JSON.stringify(model)], { type: "application/json" }));
+        formData.append("modelFile", modelFile);
+        formData.append("labelFile", labelFile);
+
+        var request = new XMLHttpRequest();
+        request.open("POST", "http://120.79.20.255:8084/gram-admin/model/insert");
+        request.send(formData);
+
+        alert("添加成功");
+    }
+
+    function update() {
+        var modelName = document.getElementById("modelName").value;
+        var inputTensorName = document.getElementById("inputTensorName").value;
+        var outputTensorName = document.getElementById("outputTensorName").value;
+        var numberLabel = document.getElementById("numberLabel").value;
+        var times = document.getElementById("times").value;
+        times = times.split(",");
+
+        var model = {
+            modelName: modelName,
+            inputTensorName: inputTensorName,
+            outputTensorName: outputTensorName,
+            numberLabel: numberLabel,
+            times: times
+        };
+
+        var modelFile = document.forms["gramModelForm"].modelFile.files[0];
+        var labelFile = document.forms["gramModelForm"].labelFile.files[0];
+
+        var formData = new FormData();
+
+        formData.append("gramModel", new Blob([JSON.stringify(model)], { type: "application/json" }));
+        formData.append("modelFile", modelFile);
+        formData.append("labelFile", labelFile);
+
+        var request = new XMLHttpRequest();
+        request.open("POST", "http://120.79.20.255:8084/gram-admin/model/update");
+        request.send(formData);
+
+        alert("更新成功")
+    }
+</script>
+</html>
